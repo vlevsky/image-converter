@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Converter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    input, select, button {
+      margin: 10px 0;
+      padding: 10px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #downloadLink {
+      display: block;
+      margin-top: 20px;
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .image-preview {
+      margin-top: 20px;
+    }
+
+    #preview {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+  </style>
+  <!-- Include heic2any library -->
+  <script src="https://cdn.jsdelivr.net/npm/heic2any/dist/heic2any.min.js"></script>
+  <!-- Include image-conversion library -->
+  <script src="https://cdn.jsdelivr.net/npm/image-conversion/dist/image-conversion.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Image Converter</h1>
+    <input type="file" id="imageInput" accept="image/*">
+    <select id="formatSelect">
+      <option value="jpeg">JPEG</option>
+      <option value="png">PNG</option>
+      <option value="webp">WebP</option>
+      <option value="bmp">BMP</option>
+      <option value="gif">GIF</option>
+      <option value="tiff">TIFF</option>
+      <option value="ico">ICO</option>
+      <option value="svg">SVG</option>
+      <option value="heic">HEIC</option>
+      <option value="avif">AVIF</option>
+      <option value="jp2">JP2</option>
+      <option value="ppm">PPM</option>
+      <option value="pgm">PGM</option>
+      <option value="pbm">PBM</option>
+    </select>
+    <button id="convertButton">Convert</button>
+    <a id="downloadLink" style="display:none;">Download Converted Image</a>
+    <div class="image-preview">
+      <img id="preview" src="#" alt="Image Preview" style="display:none;">
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('imageInput').addEventListener('change', function (event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = document.getElementById('preview');
+          img.src = e.target.result;
+          img.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    document.getElementById('convertButton').addEventListener('click', async function () {
+      const imageInput = document.getElementById('imageInput');
+      const formatSelect = document.getElementById('formatSelect');
+      const downloadLink = document.getElementById('downloadLink');
+      const preview = document.getElementById('preview');
+
+      if (!imageInput.files[0]) {
+        alert('Please upload an image first.');
+        return;
+      }
+
+      const file = imageInput.files[0];
+      const reader = new FileReader();
+
+      reader.onload = async function (e) {
+        const img = new Image();
+        img.src = e.target.result;
+
+        img.onload = async function () {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+
+          let mimeType;
+          let blob;
+
+          switch (formatSelect.value) {
+            case 'jpeg':
+              mimeType = 'image/jpeg';
+              blob = await canvasToBlob(canvas, mimeType);
+              break;
+            case 'png':
+              mimeType = 'image/png';
+              blob = await canvasToBlob(canvas, mimeType);
+              break;
+            case 'webp':
+              mimeType = 'image/webp';
+              blob = await canvasToBlob(canvas, mimeType);
+              break;
+            case 'bmp':
+              mimeType = 'image/bmp';
+              blob = await canvasToBlob(canvas, mimeType);
+              break;
+            case 'gif':
+              mimeType = 'image/gif';
+              blob = await canvasToBlob(canvas, mimeType);
+              break;
+            case 'tiff':
+              mimeType = 'image/tiff';
+              blob = await canvasToBlob(canvas, mimeType);
+              break;
+            case 'ico':
+              mimeType = 'image/x-icon';
+              blob = await canvasToBlob(canvas, mimeType);
+              break;
+            case 'svg':
+              mimeType = 'image/svg+xml';
+              blob = await canvasToBlob(canvas, mimeType);
+              break;
+            case 'heic':
+              mimeType = 'image/heic';
+              blob = await heic2any({ blob: file, toType: 'image/jpeg' });
+              break;
+            case 'avif':
+              mimeType = 'image/avif';
+              blob = await imageConversion.toBlob(file, { type: 'image/avif' });
+              break;
+            case 'jp2':
+              mimeType = 'image/jp2';
+              blob = await imageConversion.toBlob(file, { type: 'image/jp2' });
+              break;
+            case 'ppm':
+              mimeType = 'image/x-portable-pixmap';
+              blob = await imageConversion.toBlob(file, { type: 'image/x-portable-pixmap' });
+              break;
+            case 'pgm':
+              mimeType = 'image/x-portable-graymap';
+              blob = await imageConversion.toBlob(file, { type: 'image/x-portable-graymap' });
+              break;
+            case 'pbm':
+              mimeType = 'image/x-portable-bitmap';
+              blob = await imageConversion.toBlob(file, { type: 'image/x-portable-bitmap' });
+              break;
+            default:
+              mimeType = 'image/jpeg';
+              blob = await canvasToBlob(canvas, mimeType);
+          }
+
+          const url = URL.createObjectURL(blob);
+          downloadLink.href = url;
+          downloadLink.download = `converted-image.${formatSelect.value}`;
+          downloadLink.style.display = 'block';
+        };
+      };
+
+      reader.readAsDataURL(file);
+    });
+
+    function canvasToBlob(canvas, mimeType) {
+      return new Promise((resolve) => {
+        canvas.toBlob((blob) => resolve(blob), mimeType);
+      });
+    }
+  </script>
+</body>
+</html>
